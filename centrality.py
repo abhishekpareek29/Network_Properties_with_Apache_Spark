@@ -27,6 +27,9 @@ def closeness(g):
 	# Get the inverses and generate desired dataframe.
 	results = results.selectExpr('key as id', '1/s as closeness')
 
+	# Save outout to csv.
+	results.toPandas().to_csv("centrality_out.csv")
+
 	return results
 
 print("Reading in graph for problem 2.")

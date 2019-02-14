@@ -57,20 +57,22 @@ v = e.selectExpr('src as id').unionAll(e.selectExpr('dst as id')).distinct()
 # Create graphframe from the vertices and edges.
 g = GraphFrame(v,e)
 
-# #Runtime approximately 5 minutes
-# print("---------------------------")
-# print("Processing graph using Spark iteration over nodes and serial (networkx) connectedness calculations")
+#Runtime approximately 5 minutes
+print("---------------------------")
+print("Processing graph using Spark iteration over nodes and serial (networkx) connectedness calculations")
+init = time.time()
+df = articulations(g, False)
+print("Execution time: %s seconds" % (time.time() - init))
+print("Articulation points:")
+articulation_points = df.filter('articulation = 1')
+articulation_points.toPandas().to_csv("articulations_out.csv")
+articulation_points.show(truncate=False)
+print("---------------------------")
+
+# #Runtime for below is more than 2 hours
+# print("Processing graph using serial iteration over nodes and GraphFrame connectedness calculations")
 # init = time.time()
-# df = articulations(g, False)
+# df = articulations(g, True)
 # print("Execution time: %s seconds" % (time.time() - init))
 # print("Articulation points:")
 # df.filter('articulation = 1').show(truncate=False)
-# print("---------------------------")
-
-#Runtime for below is more than 2 hours
-print("Processing graph using serial iteration over nodes and GraphFrame connectedness calculations")
-init = time.time()
-df = articulations(g, True)
-print("Execution time: %s seconds" % (time.time() - init))
-print("Articulation points:")
-df.filter('articulation = 1').show(truncate=False)

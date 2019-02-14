@@ -8,19 +8,26 @@ sc=SparkContext("local", "degree.py")
 sqlContext = SQLContext(sc)
 
 def closeness(g):
-	
+
 	# Get list of vertices. We'll generate all the shortest paths at
 	# once using this list.
-	# YOUR CODE HERE
+	vertexList = g.vertices
+
+	vertexList = vertexList.select('id').flatMap(lambda x: x).collect()
 
 	# first get all the path lengths.
+	results = g.shortestPaths(vertexList)
 
 	# Break up the map and group by ID for summing
+	results = results.select(functions.explode('distances')).groupBy('key')
 
 	# Sum by ID
+	results = results.agg(functions.sum('value').alias('s'))
 
 	# Get the inverses and generate desired dataframe.
+	results = results.selectExpr('key as id', '1/s as closeness')
 
+	return results
 
 print("Reading in graph for problem 2.")
 graph = sc.parallelize([('A','B'),('A','C'),('A','D'),
@@ -33,7 +40,7 @@ graph = sc.parallelize([('A','B'),('A','C'),('A','D'),
 	('H','C'),('H','F'),('H','I'),
 	('I','H'),('I','J'),
 	('J','I')])
-	
+
 e = sqlContext.createDataFrame(graph,['src','dst'])
 v = e.selectExpr('src as id').unionAll(e.selectExpr('dst as id')).distinct()
 print("Generating GraphFrame.")
